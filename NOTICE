@@ -1,0 +1,204 @@
+pg_qsag_audit
+Copyright (c) 2026 AIXYBER TECH LTD (trading as Neoxyber)
+
+This product includes software developed by AIXYBER TECH LTD (trading as
+Neoxyber) as part of the Q-SAG (Quantum-Secure Autonomous Gateway) open-source
+substrate programme.
+
+For details of the substrate programme, see the published Q-SAG documentation
+at https://docs.neoxyber.com (when available) and the public substrate-artefact
+repositories under https://github.com/Neoxyber.
+
+------------------------------------------------------------------------
+Third-Party Components
+------------------------------------------------------------------------
+
+This extension is a Postgres-extension artefact with two build flavours
+under one source tree (`dist/tle/` for the pg_tle SQL-only build, and
+`dist/pgrx/` for the pgrx-native Rust build). Its third-party surface
+spans cryptographic reference implementations, test-vector corpora,
+extension frameworks, and academic prior-art citations.
+
+For the complete machine-readable list of dependencies actually shipped
+with each release, see the project's SBOM (Software Bill of Materials)
+generated for each release in CycloneDX 1.6 format and published
+alongside the release artefacts on PGXN, dbdev, and (where applicable)
+PostgreSQL APT/YUM repositories.
+
+The following third-party components are anticipated for v0.1
+(non-exhaustive; the SBOM published with each release is the
+authoritative list):
+
+  Cryptographic reference implementations:
+
+    - Keccak Code Package (XKCP) — the canonical FIPS 202 reference
+      implementation maintained by the Keccak design team
+      (Guido Bertoni, Joan Daemen, Michaël Peeters, Gilles Van Assche,
+      Ronny Van Keer). The TLE flavour's pure-plpgsql Keccak-f[1600]
+      sponge construction is a clean-room port informed by the XKCP
+      reference. Source: https://github.com/XKCP/XKCP and
+      https://keccak.team. Licence: CC0 1.0 Universal public-domain
+      dedication, with portions under a BSD-style licence; full licence
+      text preserved in the upstream repository.
+
+    - tiny_sha3 — a compact portable SHA-3 / Keccak reference by
+      Markku-Juhani O. Saarinen. Used as a secondary reference for the
+      TLE-flavour port to ensure correctness on small inputs and for
+      cross-validation of the sponge state machine.
+      Source: https://github.com/mjosaarinen/tiny_sha3.
+      Licence: MIT.
+
+  Test-vector corpora:
+
+    - NIST CAVP Known Answer Test (KAT) corpus for FIPS 202 (SHA-3
+      Standard). The full short-message and Monte Carlo KAT corpus is
+      embedded in the extension and is verified by `pg_qsag.run_kats()`
+      at extension installation time; loading is refused if any vector
+      fails. Source: https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/Secure-Hashing.
+      Licence: US Government work; 17 USC §105 public domain in the
+      United States; no copyright asserted internationally by NIST.
+
+  PostgreSQL extension framework and core:
+
+    - AWS pg_tle (Trusted Language Extensions for PostgreSQL) — the
+      extension framework that enables the `dist/tle/` flavour to
+      install on managed-Postgres tiers (RDS, Aurora, Supabase) where
+      C extensions are forbidden. pg_qsag_audit's TLE flavour does not
+      modify or redistribute pg_tle source; it is a consumer of the
+      framework and assumes the framework is installed on the target
+      database.
+      Source: https://github.com/aws/pg_tle.
+      Licence: Apache License 2.0.
+
+    - PostgreSQL `pgcrypto` contrib module — the bundled hashing
+      function set that pg_qsag_audit's `pg_qsag.digest()` dispatcher
+      routes to when SHA3 is available via the OpenSSL EVP layer. We do
+      not bundle or redistribute pgcrypto source; we depend on it being
+      present in the target installation. Original authors: Marko Kreen
+      (initial release) and the PostgreSQL Global Development Group.
+      Source: https://github.com/postgres/postgres/tree/master/contrib/pgcrypto.
+      Licence: PostgreSQL License (BSD-style with patent-grant clause).
+
+  Build / development dependencies (anticipated for `dist/pgrx/`):
+
+    - pgrx — the Rust-to-PostgreSQL extension framework
+      (https://github.com/pgcentralfoundation/pgrx). Licence: Apache
+      License 2.0 OR MIT (dual-licensed; pg_qsag_audit selects Apache
+      2.0 for distribution consistency).
+
+    - The Rust standard library and the `cargo` build toolchain.
+      Licence: Apache License 2.0 OR MIT.
+
+  Build / development dependencies (anticipated for `dist/tle/`):
+
+    - PostgreSQL itself, version 14 or later, for plpgsql interpretation
+      and the pg_tle framework.
+      Licence: PostgreSQL License.
+
+    - `pg_format` (or equivalent) for plpgsql formatting; `pgTAP` for
+      test execution. These are development-time tools, not runtime
+      dependencies of the shipped extension.
+
+  Components anticipated for v0.5 (not present at v0.1):
+
+    - liboqs (Open Quantum Safe) — for any ML-DSA / SLH-DSA / Falcon
+      signatures emitted by the v0.5 SCITT Signed Statement emitter.
+      Source: https://github.com/open-quantum-safe/liboqs.
+      Licence: MIT.
+
+    - RustCrypto crates (e.g. `sha3`, `hmac`, potentially `ml-dsa`) —
+      for native pgrx hashing and signing primitives.
+      Source: https://github.com/RustCrypto.
+      Licence: Apache License 2.0 OR MIT.
+
+Each component's full licence text is preserved in the dependency's own
+distribution; we do not redistribute their source.
+
+------------------------------------------------------------------------
+Academic Prior Art
+------------------------------------------------------------------------
+
+pg_qsag_audit's audit-chain primitive design draws on academic prior
+art that is not a software dependency but is credited here per
+scholarly convention:
+
+  Madhwal, Yash; Yanovich, Yury; Anokhin, Ilya.
+  "Blockchain Extension for PostgreSQL Data Storage."
+  In Proceedings of the 3rd Blockchain and Internet of Things Conference
+  (BIOTC 2021), pp. 24-30. ACM, July 2021.
+  DOI: 10.1145/3475992.3476001
+
+  Crosby, Scott A. and Wallach, Dan S.
+  "Efficient Data Structures for Tamper-Evident Logging."
+  In Proceedings of the 18th USENIX Security Symposium, pp. 317-334.
+  USENIX Association, August 2009.
+  Cited for the history-tree pattern adopted in the v0.5 Merkle
+  accumulator design.
+
+Where these works are referenced in the codebase or documentation, the
+citation is preserved at the point of use; the works themselves are not
+redistributed.
+
+------------------------------------------------------------------------
+Standards Documents
+------------------------------------------------------------------------
+
+The following standards documents are referenced normatively or
+informatively by pg_qsag_audit. Their text is not redistributed; they
+are cited at the point of use:
+
+    - NIST FIPS 202 — SHA-3 Standard.
+    - NIST SP 800-185 — KMAC, TupleHash, ParallelHash.
+    - NIST CSWP 39 — Crypto Agility (final 19 December 2025).
+    - NIST SP 800-232 — Ascon (finalised 13 August 2025).
+    - IETF RFC 8785 — JSON Canonicalisation Scheme (JCS).
+    - IETF RFC 7515 — JSON Web Signature (JWS), used by PGXN v2 RFC-5
+      Meta Spec v2 release certification.
+    - IETF draft-ietf-scitt-architecture-22 — SCITT.
+    - IETF draft-ietf-cose-merkle-tree-proofs-18 — COSE Receipts.
+    - PGXN v2 RFC-2 (binary distribution), RFC-3 (Meta Spec v2),
+      RFC-5 (JWS-signed META.json release certification).
+    - EU Regulation 2024/1689 (AI Act), Article 12 and Article 26.
+    - EU Regulation 2024/2847 (CRA), Article 14.
+    - Contributor Covenant 2.1 (Code of Conduct text).
+
+Standards documents published by NIST are US Government work and
+public domain in the United States. IETF RFCs are subject to the
+IETF Trust Legal Provisions (BCP 78 and BCP 79). EU Regulations are
+published by the EU institutions under their own terms. PGXN v2 RFCs
+are published under the PostgreSQL License or as public-domain
+contributions to the PGXN Steering Committee. Contributor Covenant
+2.1 is licensed CC BY 4.0.
+
+------------------------------------------------------------------------
+Trademark Notice
+------------------------------------------------------------------------
+
+"Neoxyber", "Q-SAG", "QAID", "did:qsag", and "QSAG-OP" are trade names
+of AIXYBER TECH LTD. UK and EU trademark registration is planned but
+not yet filed at the date of this NOTICE.
+
+Use of these trade names is permitted as required for describing the
+origin of the Work and for reproducing the content of this NOTICE file.
+Any other use is subject to Section 6 of the Apache License 2.0 (which
+does not grant trademark rights) and ordinary UK passing-off law.
+
+"PostgreSQL" is a trademark of the PostgreSQL Global Development Group
+and the PostgreSQL Community Association of Canada. "AWS", "Amazon RDS",
+and "Amazon Aurora" are trademarks of Amazon.com, Inc. or its affiliates.
+"Supabase" is a trademark of Supabase Inc. These trademarks are used
+nominatively and descriptively only; pg_qsag_audit is not affiliated
+with, endorsed by, or sponsored by any of these projects or
+organisations.
+
+------------------------------------------------------------------------
+Company Information
+------------------------------------------------------------------------
+
+AIXYBER TECH LTD
+Company No. 16826340
+Registered in England and Wales
+ICO Registration: ZC071900
+
+For full corporate-identity details, see COMPANY_FACTS.md in this
+repository.
