@@ -1,0 +1,74 @@
+# Pre-commit framework configuration — pg_qsag_audit.
+#
+# Per ADR-0031 §6.2 of the master programme ADR (committed to the private
+# neoxyber-qsag repo at 5541d7b32e16b5a1da8b25e17a1c989cff049dde on
+# 2026-05-09), every commit on master programme repositories must be
+# GPG-signed and DCO-signed. This config adds machine-checked discipline
+# on top of those manual disciplines: scanning every push for credential
+# leaks across 33 patterns before the push reaches origin.
+#
+# Local install: pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push
+# Run manually: pre-commit run --all-files
+# CI: invoked via pre-commit/action (SHA-pinned) in .github/workflows/ci.yml when added.
+#
+# Supply-chain hardening:
+#   - This config currently uses only a `local` hook (the qsag-secret-scan
+#     wrapper at scripts/git-hooks/secret-scan-cli.sh). No external repos
+#     are pulled, so no SHA pinning of upstream `rev:` fields is required.
+#   - When CI workflows are added, all GitHub Actions references must use
+#     40-char SHA-1 commit hashes rather than tags. Tags are mutable
+#     (tj-actions/changed-files March 2025 supply-chain attack rewrote
+#     350+ tags to malicious commits affecting 23,000+ repos). SHAs are
+#     immutable.
+#
+# The Q-SAG secret-scan library is preserved verbatim from the master
+# private repository (scripts/git-hooks/lib/secret-scan.sh, 9,704 bytes,
+# 33 patterns, repo-agnostic, zero third-party dependencies, bash 4+ and
+# POSIX grep only). The CLI wrapper at scripts/git-hooks/secret-scan-cli.sh
+# (3,623 bytes) adapts the library's function-based API to the calling
+# convention pre-commit expects.
+#
+# Note on scope: this repository is a Postgres extension, not a Postgres
+# application. The Squawk-via-Alembic-SQL hook used in the master Q-SAG
+# private repository (which lints Alembic migrations) is intentionally
+# omitted here — pg_qsag_audit ships extension SQL via dist/tle/ and
+# dist/pgrx/ rather than via Alembic. A future addition of a Squawk
+# direct-SQL-file linter is reasonable once the dist/tle/ SQL surface
+# stabilises.
+#
+# References:
+#   https://pre-commit.com/
+#   github.com/Neoxyber/neoxyber-qsag (master programme private repo)
+#   docs/decisions/ADR-0001-design.md (artefact-level design ADR, when added)
+
+# Default to running on push, not commit. Per the prevailing community
+# guidance (BigGo News, Oct 2025): hooks slower than 0.5 s belong on
+# pre-push, not pre-commit, to avoid disrupting the commit-loop cadence.
+default_stages: [pre-push]
+
+# Don't auto-fix; security hooks must never silently modify code.
+fail_fast: false
+
+repos:
+  # ── Q-SAG secret-scan (local hook, wraps library verbatim) ──
+  - repo: local
+    hooks:
+      - id: qsag-secret-scan
+        name: Q-SAG secret scan (33 patterns)
+        description: |
+          Scans files for credential leaks across 33 patterns covering
+          API keys, OAuth tokens, private keys, cloud-provider credentials,
+          database connection strings, JWT secrets, signing keys, and
+          generic high-entropy strings. See scripts/git-hooks/lib/secret-scan.sh
+          for the full pattern list and scripts/git-hooks/secret-scan-cli.sh
+          for the CLI wrapper.
+
+          This hook scans full file content (not diff). A secret committed
+          earlier and never removed will be flagged on every subsequent
+          push until removed — this closes a previously-missed failure
+          mode where secrets could survive multiple pushes if introduced
+          before the hook was active.
+        entry: scripts/git-hooks/secret-scan-cli.sh
+        language: script
+        stages: [pre-commit, pre-push]
+        pass_filenames: true
