@@ -4,17 +4,19 @@
 |---|---|
 | **ADR Number** | 0001 |
 | **Title** | pg_qsag_audit Design |
-| **Status** | Accepted (amended) |
+| **Status** | Accepted (amended twice) |
 | **Date Proposed** | 2026-05-09 |
 | **Date Accepted** | 2026-05-09 |
-| **Date Amended** | 2026-05-10 (see §7 Amendment Log) |
+| **Date Amended** | 2026-05-10 (Amendment 1: Stage 0 hardenings; see §7) |
+| **Date Re-amended** | 2026-05-10 (Amendment 2: post-rewrite hash-provenance reconciliation; see §7.1) |
+| **History rewrite** | 2026-05-10 (commit-history rewrite of all ten v0.0.0 substrate commits to correct an email-configuration defect; see §7.1 for full original→new hash mapping) |
 | **Author** | Muhammad Zaid Naeem (Maintainer, AIXYBER TECH LTD trading as Neoxyber) |
 | **Approver** | Muhammad Zaid Naeem (Sole Director, AIXYBER TECH LTD) |
 | **Supersedes** | None (this is the first artefact-level ADR) |
 | **Superseded By** | None |
 | **Related Master ADRs** | ADR-0031 (Open-Source Cryptographic and Audit Substrate Programme; amended 2026-05-09) in the private neoxyber-qsag repository |
 | **Related Sibling ADRs** | qsag-anchors ADR-0001-design (federated SCITT TS primitives); qsag-canonical ADR-0001-design (RFC 8785 JCS implementation) |
-| **Source-of-authority for amendment** | docs/research/2026-05-10-v01-landscape.md (committed at `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`, 2026-05-10) |
+| **Source-of-authority for amendment** | docs/research/2026-05-10-v01-landscape.md (committed at `73b502f2fd991bf8ebd6269fab1743869deb9875` post-rewrite, 2026-05-10; original pre-rewrite hash was `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`) |
 | **Scope** | pg_qsag_audit v0.1 design surface, with v0.5 trajectory previewed |
 | **Licence** | Apache License 2.0 |
 
@@ -30,7 +32,9 @@ The master programme ADR (ADR-0031 in the private neoxyber-qsag repository, amen
 
 Per the locked ADR discipline in ADR-0031 §4.1 (the two-tier ADR structure: master programme ADRs in `neoxyber-qsag`, per-artefact ADRs in this repository), this ADR-0001 must be committed before any source code lands in `dist/tle/` or `dist/pgrx/`. This is being committed as part of the initial repository scaffolding.
 
-This ADR was amended in place on 2026-05-10 to incorporate three Stage 0 hardenings derived from a comprehensive landscape research synthesis (committed at `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d` to `docs/research/2026-05-10-v01-landscape.md`). The amendments tighten — they do not reverse — the original design. The full amendment provenance is in §7 Amendment Log.
+This ADR was amended in place on 2026-05-10 (Amendment 1) to incorporate three Stage 0 hardenings derived from a comprehensive landscape research synthesis (committed at `73b502f2fd991bf8ebd6269fab1743869deb9875` to `docs/research/2026-05-10-v01-landscape.md`, post the 2026-05-10 history rewrite documented in §7.1). The amendments tighten — they do not reverse — the original design. The full amendment provenance is in §7 Amendment Log.
+
+A second amendment (Amendment 2) was applied later the same day to reconcile hash references after a substrate-wide history rewrite that corrected an email-configuration defect. The full provenance, motivation, and original→new hash mapping is in §7.1.
 
 ### 1.2 Why this artefact exists
 
@@ -241,7 +245,7 @@ The one operational caveat is **reordering**: if two transactions append to the 
 
 ### 2.4 Threat model (v0.1)
 
-Documented in detail in [THREAT_MODEL.md](../../THREAT_MODEL.md) (forthcoming with v0.1) and [SECURITY.md](../../SECURITY.md) (committed at `c777767454e9aa9af6a8b1ab4b04c5fbaffc3309`). Summary of v0.1 commitments:
+Documented in detail in [THREAT_MODEL.md](../../THREAT_MODEL.md) (forthcoming with v0.1) and [SECURITY.md](../../SECURITY.md) (committed at `c777767454e9aa9af6a8b1ab4b04c5fbaffc3309`, original pre-rewrite hash; current post-rewrite hash is `37ccb44e0a3dbe5eee25e9d6e9dc7942e71dc724` per §7.1). Summary of v0.1 commitments:
 
 **Defended against:**
 
@@ -330,7 +334,7 @@ Every fixed SHA3-divergence, dispatcher-binding, or audit-chain-tampering bug mu
 4. Padding rule errors — `pad10*1` with the FIPS 202 domain-separation byte **0x06** for SHA-3 (NOT `0x1F` for SHAKE, NOT `0x01` for raw Keccak / Ethereum). A port that uses `0x01` will silently produce *Ethereum-style* hashes that pass internal self-consistency tests but fail FIPS 202 KATs. The empty-string and "abc" vectors in Layer 1 catch this class of bug immediately.
 5. Rate boundary off-by-one when message length equals exactly the rate (caught by Layer 3 specifically; not always caught by Layer 1 and 2 vectors).
 
-The full bug-class checklist for the pure-plpgsql fallback is documented in `docs/research/2026-05-10-v01-landscape.md` (committed at `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`).
+The full bug-class checklist for the pure-plpgsql fallback is documented in `docs/research/2026-05-10-v01-landscape.md` (current post-rewrite hash `73b502f2fd991bf8ebd6269fab1743869deb9875`; original pre-rewrite hash `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`).
 
 ---
 
@@ -445,11 +449,14 @@ Detailed clause-level mappings will live in [STANDARDS.md](../../STANDARDS.md) (
 - RustCrypto sha3 crate — https://github.com/RustCrypto/hashes/tree/master/sha3.
 
 **Project-internal references:**
-- pg_qsag_audit README — https://github.com/Neoxyber/pg_qsag_audit/blob/main/README.md (committed at `a6b17482ef617809a238580d6015c29e85457f9a`).
-- pg_qsag_audit SECURITY.md — https://github.com/Neoxyber/pg_qsag_audit/blob/main/SECURITY.md (committed at `c777767454e9aa9af6a8b1ab4b04c5fbaffc3309`).
-- pg_qsag_audit CONTRIBUTING.md — https://github.com/Neoxyber/pg_qsag_audit/blob/main/CONTRIBUTING.md (committed at `c9251d1cc1f3e55ffd8780ac1e087ca914d82265`).
-- pg_qsag_audit NOTICE — https://github.com/Neoxyber/pg_qsag_audit/blob/main/NOTICE (committed at `add7ca7214b6833fdc3cf4e2f0876c34d5682bc7`).
-- **pg_qsag_audit landscape research synthesis (source-of-authority for the 2026-05-10 amendment of this ADR) — `docs/research/2026-05-10-v01-landscape.md` (committed at `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`).**
+
+Note: All project-internal commit hashes below reflect the post-rewrite state after the 2026-05-10 history rewrite documented in §7.1. Original pre-rewrite hashes are recorded in §7.1 for full provenance.
+
+- pg_qsag_audit README — https://github.com/Neoxyber/pg_qsag_audit/blob/main/README.md (current post-rewrite hash `ecdc34498f3d345554baa59f8799fc392d3d7b59`; original pre-rewrite hash `a6b17482ef617809a238580d6015c29e85457f9a`).
+- pg_qsag_audit SECURITY.md — https://github.com/Neoxyber/pg_qsag_audit/blob/main/SECURITY.md (current post-rewrite hash `37ccb44e0a3dbe5eee25e9d6e9dc7942e71dc724`; original pre-rewrite hash `c777767454e9aa9af6a8b1ab4b04c5fbaffc3309`).
+- pg_qsag_audit CONTRIBUTING.md — https://github.com/Neoxyber/pg_qsag_audit/blob/main/CONTRIBUTING.md (current post-rewrite hash `ac747ecc88efce9a881e3f6f052bf9b44bbb7ce7`; original pre-rewrite hash `c9251d1cc1f3e55ffd8780ac1e087ca914d82265`).
+- pg_qsag_audit NOTICE — https://github.com/Neoxyber/pg_qsag_audit/blob/main/NOTICE (current post-rewrite hash `3c7bf8e955bd54480dbf9bf69f1ba239de1e1398`; original pre-rewrite hash `add7ca7214b6833fdc3cf4e2f0876c34d5682bc7`).
+- **pg_qsag_audit landscape research synthesis (source-of-authority for the 2026-05-10 amendment of this ADR) — `docs/research/2026-05-10-v01-landscape.md` (current post-rewrite hash `73b502f2fd991bf8ebd6269fab1743869deb9875`; original pre-rewrite hash `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`).**
 
 ---
 
@@ -458,6 +465,8 @@ Detailed clause-level mappings will live in [STANDARDS.md](../../STANDARDS.md) (
 Approved by the sole director of AIXYBER TECH LTD, Muhammad Zaid Naeem, on 9 May 2026. This ADR is committed GPG-signed (Ed25519 key fingerprint `A65AF5B7F02C9EB5B98023D70DB861BBF30F0D7B`, valid until April 2028) and DCO-signed alongside the v0.0.0 scaffolding for `pg_qsag_audit`.
 
 The 2026-05-10 amendment incorporating the three Stage 0 hardenings (typed `dsep_hash` algorithm tag, dispatcher per-row `alg_id` logging, KAT corpus pinning at the rate boundary plus long-message vector) was approved by the same sole director on 10 May 2026, GPG-signed and DCO-signed under the same key. The full amendment provenance is in §7 Amendment Log.
+
+A second amendment (Amendment 2) was approved by the same sole director later on 2026-05-10 to reconcile hash references after a substrate-wide history rewrite that corrected an email-configuration defect. The full provenance is in §7.1.
 
 ---
 
@@ -471,8 +480,8 @@ This section records all amendments to this ADR. Amendments are recorded in chro
 |---|---|
 | Amendment date | 2026-05-10 |
 | Approving authority | Muhammad Zaid Naeem (Sole Director, AIXYBER TECH LTD) |
-| Source of authority | `docs/research/2026-05-10-v01-landscape.md` (committed at `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`) — comprehensive cryptographic, regulatory, and PostgreSQL-extension landscape research synthesis with cut-off date 2026-05-09 |
-| Original commit hash | `e3c91e67f5893597ceb373b9c9d4673941ae8330` (this file at the moment immediately before this amendment was applied) |
+| Source of authority | `docs/research/2026-05-10-v01-landscape.md` (current post-rewrite hash `73b502f2fd991bf8ebd6269fab1743869deb9875`; original pre-rewrite hash `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d`) — comprehensive cryptographic, regulatory, and PostgreSQL-extension landscape research synthesis with cut-off date 2026-05-09 |
+| Original commit hash | `a78e664c9d39750c21f889b5f0450753149fbec4` (current post-rewrite); original pre-rewrite hash was `e3c91e67f5893597ceb373b9c9d4673941ae8330` (this file at the moment immediately before this amendment was applied) |
 | Type of change | Tightening (no reversal of any prior decision) |
 
 **Clauses amended:**
@@ -505,6 +514,70 @@ The research synthesis identified three concrete tightenings that align the v0.1
 - The KAT corpus pinning at the rate boundary plus the long-message vector closes the bug-class window that has historically caught lane-indexing and `pad10*1` transcription errors in interpreted-language Keccak ports — the exact class of port that the pure-plpgsql TLE flavour belongs to.
 
 The substrate design holds. ADR-0001 is fundamentally sound as originally committed; this amendment refines three implementation specifics for forward-compatibility and standards alignment.
+
+### 7.1 Amendment 2 — 2026-05-10 (afternoon) — Hash provenance reconciliation after substrate-wide history rewrite
+
+| Field | Value |
+|---|---|
+| Amendment date | 2026-05-10 (afternoon, after Amendment 1) |
+| Approving authority | Muhammad Zaid Naeem (Sole Director, AIXYBER TECH LTD) |
+| Type of change | Reconciliation (no design change; updates hash references after a non-design history rewrite) |
+| Substrate cryptographic integrity | Unaffected. The chain-link formulas, dispatcher state machine, KAT corpus, and all design decisions remain exactly as Amendment 1 committed them. |
+
+**Why this amendment exists:**
+
+On 2026-05-10, after Amendment 1 had been committed, an inspection of the substrate's GitHub commit verification status revealed that all post-Initial commits on `pg_qsag_audit` were displaying as "Unverified" while the equivalent commits on sibling repositories (`qsag-canonical`, `qsag-anchors`, `neoxyber-qsag`) were correctly displaying as "Verified". Investigation traced the cause to a literal ASCII string `[email protected]` having been written into the local `git config user.email` for `pg_qsag_audit` at some point during initial repository setup. This string is the output of Cloudflare's "Email Address Obfuscation" feature: when enabled on a domain, Cloudflare replaces visible email addresses in HTML responses with the literal token `[email protected]`, intended to be decoded client-side by JavaScript. When such an obfuscated email was copied from a webpage and pasted into a `git config` command, the literal placeholder string was stored in the config rather than the real email. Because GitHub's commit-verification logic requires the committer email in the commit object to bind to a verified email on a GitHub user account, and no GitHub account has the literal string `[email protected]` as a verified email, every signed commit produced by `pg_qsag_audit` was rendering as Unverified despite carrying valid cryptographic signatures.
+
+Because of how Cloudflare email obfuscation also affects in-browser display (and may affect in-clipboard or in-paste rendering depending on the originating page's transport), naive corrective `git config user.email "..."` commands would re-introduce the same broken bytes. The corrective approach used the shell-concatenation pattern `"zaidnaeem"@"neoxyber.com"` (splitting the email across quoted segments to break any regex pattern match that triggers obfuscation substitution) to introduce the byte-correct email into the local config.
+
+**What was done:**
+
+1. The local `.git/config` `user.email` field was corrected from the broken bytes `[email protected]` (ASCII bytes `5b 65 6d 61 69 6c 20 70 72 6f 74 65 63 74 65 64 5d`) to the byte-correct `zaidnaeem@neoxyber.com` (ASCII bytes `7a 61 69 64 6e 61 65 65 6d 40 6e 65 6f 78 79 62 65 72 2e 63 6f 6d`).
+2. All ten existing commits on `main` were rewritten via `git-filter-repo` with an `--email-callback` that replaced the broken email bytes with the correct ones in every author and committer field across the history.
+3. All ten rewritten commits were then re-signed under the existing Ed25519 GPG key fingerprint `A65AF5B7F02C9EB5B98023D70DB861BBF30F0D7B` via `git rebase --root --exec 'git commit --amend --no-edit -S'`.
+4. The rewritten and re-signed history was force-pushed to GitHub. All ten commits subsequently displayed as "Verified" on GitHub.
+5. The rewrite did not modify any tree contents (no file content changed). It only modified the author/committer email fields in commit objects, which necessarily changed every commit's hash. The underlying file contents at every revision are byte-identical to the pre-rewrite state.
+6. A separate off-disk backup (`~/projects/pg_qsag_audit-backup-2026-05-10`) was created via `git clone` from the pre-rewrite GitHub state before the rewrite, and was retained as a recovery resource.
+
+**Original→new hash mapping:**
+
+| Commit subject | Pre-rewrite hash | Post-rewrite hash |
+|---|---|---|
+| Initial commit | `abec647...` (full hash on the GitHub-web-UI-created commit) | `e57eb924313c3eaa4f2c737451bd216cfbcff370` |
+| Initial scaffolding for pg_qsag_audit (Apache 2.0) | `e56797c...` | `396dad143d09e4993bfcff5a6eda70a4f091e7ec` |
+| Install pre-push hooks: qsag-secret-scan (33 patterns) | `454178a...` | `873c8455991ed285c2f8107beea7c06bc3ddf443` |
+| Add README.md (honest gap framing, dual-flavour install) | `a6b1748...` | `ecdc34498f3d345554baa59f8799fc392d3d7b59` |
+| Add SECURITY.md (CVD policy, EU CRA Article 14 cascade, dual-flavour scope) | `c777767...` | `37ccb44e0a3dbe5eee25e9d6e9dc7942e71dc724` |
+| Add CONTRIBUTING.md (DCO + dual-flavour workflow + PGXN v2 publication intent) | `c9251d1...` | `ac747ecc88efce9a881e3f6f052bf9b44bbb7ce7` |
+| Add NOTICE (third-party attribution corpus, v0.1 + v0.5 anticipated) | `add7ca7...` | `3c7bf8e955bd54480dbf9bf69f1ba239de1e1398` |
+| Add ADR-0001: pg_qsag_audit design (v0.1 surface locked, v0.5 trajectory previewed) | `e3c91e67f5893597ceb373b9c9d4673941ae8330` | `a78e664c9d39750c21f889b5f0450753149fbec4` |
+| Add docs/research/2026-05-10-v01-landscape.md (source-of-authority for ADR-0001 amendment) | `1d0d0836dc55ac3efaf204e4ba68667ac77a8e8d` | `73b502f2fd991bf8ebd6269fab1743869deb9875` |
+| Amend ADR-0001: incorporate three Stage 0 hardenings per research synthesis | `a6efe4e0567c085193e04d4d051349cac9389fef` | `90a49fd...` (this file's pre-Amendment-2 state) |
+
+The Initial commit's pre-rewrite signature was by GitHub's own key (`B5690EEEBB952194`) because that commit was created by the GitHub web UI; after the rewrite it is signed by the Ed25519 maintainer key (`A65AF5B7F02C9EB5B98023D70DB861BBF30F0D7B`) like every other commit, providing uniform cryptographic provenance from genesis.
+
+**Stale references in commit-message bodies and subject lines:**
+
+The commit-message bodies of the pre-Amendment-2 commits on `main` continue to reference some of the pre-rewrite hashes (notably, the Amendment 1 commit's subject and body cite `1d0d0836...` and `e3c91e67...` as research-synthesis and original-ADR-0001 hashes respectively). These stale references **cannot be corrected without a further history rewrite**, because rewriting the messages would change every commit hash again, in turn invalidating the new references that the rewrite would itself introduce — an infinite regress. Per established open-source practice, the resolution is to leave the commit-message bodies as historical artefacts and document the original→new hash mapping in this Amendment Log entry so that any reader encountering a stale hash reference can resolve it via the table above.
+
+**Clauses amended in this Amendment 2:**
+
+1. **Header table** — added `Date Re-amended` and `History rewrite` rows; status updated to `Accepted (amended twice)`; `Source-of-authority for amendment` row updated to record both pre-rewrite and post-rewrite hashes for the research synthesis.
+2. **§1.1** — added closing paragraph noting Amendment 2 and pointing readers to §7.1; the existing Amendment 1 paragraph was updated to reference the post-rewrite hash for the research synthesis.
+3. **§2.4** — Threat model paragraph footer updated to record SECURITY.md's pre-rewrite and post-rewrite hashes.
+4. **§2.7** — Bug-class checklist closing paragraph updated to record the research synthesis's pre-rewrite and post-rewrite hashes.
+5. **§5 (References → Project-internal references)** — every project-internal commit-hash reference updated to record both the current post-rewrite hash and the original pre-rewrite hash, with a leading note explaining the convention.
+6. **§6 (Approval)** — added closing paragraph documenting the Amendment 2 approval.
+7. **§7 (Amendment 1 entry)** — Source-of-authority and Original commit hash fields updated to record both pre-rewrite and post-rewrite hashes.
+8. **§7.1 (this section, new)** — entirely new subsection documenting the rewrite, the original→new hash mapping, the cause analysis (Cloudflare email obfuscation placeholder), the corrective method, the residual stale-reference policy, and the substrate-cryptographic-integrity-unaffected attestation.
+
+**Rationale:**
+
+Hash references inside an ADR are load-bearing for regulatory and audit reviewability. A reviewer reading "committed at `1d0d0836...`" in 2027 to validate the amendment's source of authority must be able to resolve that hash to a real commit on the public repository. Once the rewrite occurred, all references to the original pre-rewrite hashes became unresolvable on the public repository's main branch (they remain accessible via GitHub's server-side commit retention for some weeks, but not as part of `main`'s history). This Amendment 2 records the full pre→post mapping in this Amendment Log so that any reviewer encountering a stale hash can resolve it deterministically.
+
+Documentation of the rewrite event in this Amendment Log is also the substrate's policy commitment: history rewrites on substrate artefacts are recorded as amendments. They are not silent. Future readers see the substrate's full amendment history including operational corrections, not only design changes.
+
+The Cloudflare email obfuscation defect itself is a Stage 1 lessons-learned data point that will be incorporated into the substrate's CONTRIBUTING.md once a v0.1 development cycle commits a corresponding contributor-environment guidance section.
 
 ---
 
