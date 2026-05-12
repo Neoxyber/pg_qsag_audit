@@ -1,4 +1,4 @@
-# Pre-commit framework configuration — pg_qsag_audit.
+# Pre-commit framework configuration — pg-qsag-audit.
 #
 # Per ADR-0031 §6.2 of the master programme ADR (committed to the private
 # neoxyber-qsag repo at 5541d7b32e16b5a1da8b25e17a1c989cff049dde on
@@ -31,7 +31,7 @@
 # Note on scope: this repository is a Postgres extension, not a Postgres
 # application. The Squawk-via-Alembic-SQL hook used in the master Q-SAG
 # private repository (which lints Alembic migrations) is intentionally
-# omitted here — pg_qsag_audit ships extension SQL via dist/tle/ and
+# omitted here — pg-qsag-audit ships extension SQL via dist/tle/ and
 # dist/pgrx/ rather than via Alembic. A future addition of a Squawk
 # direct-SQL-file linter is reasonable once the dist/tle/ SQL surface
 # stabilises.
